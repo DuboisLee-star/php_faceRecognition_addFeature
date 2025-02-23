@@ -1,8 +1,0 @@
-This is the php built site registration page code to add a new member in 'tab_membros' table.
-In this page, there's already constructed to upload photo using webcam installed on pc.
-Using this code style and basis, i need to make a page to update the photo fo the specified member or add one if not have photo.
-In the page, There's search option to find members in 'tab_membros' and i select him.
-and using the same model in the prior code, upload photo using webcam.
-and using save or update button. Update the the photo to 'tab_membros'.
-The data saving module and logic is the same with the prior code.
-Using the same page style.

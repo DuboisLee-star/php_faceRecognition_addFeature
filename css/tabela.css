@@ -1,0 +1,15 @@
+  .scrollable-table {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .breadcrumb {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .breadcrumb li {
+    display: inline;
+    margin-right: 20px; /* Espaçamento entre os itens da lista */
+  }

@@ -1,0 +1,12 @@
+[08-May-2023 22:44:07 America/Recife] PHP Notice:  Undefined property: stdClass::$point_of_interaction in /home/hostmarq/public_html/pagamento/app/pix.php on line 59
+[08-May-2023 22:44:07 America/Recife] PHP Notice:  Trying to get property 'transaction_data' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 59
+[08-May-2023 22:44:07 America/Recife] PHP Notice:  Trying to get property 'qr_code_base64' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 59
+[08-May-2023 22:44:07 America/Recife] PHP Notice:  Undefined property: stdClass::$point_of_interaction in /home/hostmarq/public_html/pagamento/app/pix.php on line 66
+[08-May-2023 22:44:07 America/Recife] PHP Notice:  Trying to get property 'transaction_data' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 66
+[08-May-2023 22:44:07 America/Recife] PHP Notice:  Trying to get property 'qr_code' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 66
+[08-May-2023 22:45:58 America/Recife] PHP Notice:  Undefined property: stdClass::$point_of_interaction in /home/hostmarq/public_html/pagamento/app/pix.php on line 59
+[08-May-2023 22:45:58 America/Recife] PHP Notice:  Trying to get property 'transaction_data' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 59
+[08-May-2023 22:45:58 America/Recife] PHP Notice:  Trying to get property 'qr_code_base64' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 59
+[08-May-2023 22:45:58 America/Recife] PHP Notice:  Undefined property: stdClass::$point_of_interaction in /home/hostmarq/public_html/pagamento/app/pix.php on line 66
+[08-May-2023 22:45:58 America/Recife] PHP Notice:  Trying to get property 'transaction_data' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 66
+[08-May-2023 22:45:58 America/Recife] PHP Notice:  Trying to get property 'qr_code' of non-object in /home/hostmarq/public_html/pagamento/app/pix.php on line 66
