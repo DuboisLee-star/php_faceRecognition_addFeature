@@ -182,7 +182,6 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                                             </button>
                                         </div>
 
-                                        <div class="col-md-12" style="margin-top: 20px;">
                                             <?php
                                                 $nome_parts = explode(' ', trim($membro->nome)); // Split name by spaces
                                                 $first_name = $nome_parts[0]; // Get only the first name
@@ -191,7 +190,6 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                                             <input type="hidden" name="id" value="<?php echo $membro->id; ?>">
                                             <input type="hidden" name="filename" value="<?php echo $filename; ?>">
                                             <button type="submit" class="btn btn-info">Salvar Foto</button>
-                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -273,25 +271,41 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
         }
 
         document.getElementById("form-photo").addEventListener("submit", function (event) {
+            event.preventDefault(); // Stop normal form submission
             const imageWebcam = document.getElementById("image_webcam").value;
 
             if (!imageWebcam) {
-                event.preventDefault(); // Stop submission if no image captured
                 alert("Por favor, capture uma foto antes de enviar.");
+                return; // Stop execution if no image captured
             }
+
+            const formData = new FormData(this);
+
+            fetch("action_update_photo.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json()) // Convert response to JSON
+            .then(data => {
+                console.log("🔍 Server Response:", data); // Log response in console
+                alert(JSON.stringify(data, null, 2)); // Show response in alert
+
+                if (data.success) {
+                    window.location.href = "painel.php"; // Redirect on success
+                }
+            })
+            .catch(error => console.error("❌ Error:", error));
         });
-        document.getElementById("form-photo").addEventListener("submit", function (event) {
-        event.preventDefault(); // Prevent actual submission for testing
 
-        const formData = new FormData(this);
-        console.log("🚀 Submitting Form Data:");
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ": " + pair[1]); // Log each form field
-        }
-
-        // To actually submit, uncomment this:
-        // this.submit();
-    });
+        /* document.getElementById("form-photo").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual submission for testing
+    
+            const formData = new FormData(this);
+            console.log("🚀 Submitting Form Data:");
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ": " + pair[1]); // Log each form field
+            } 
+        }); */
     </script>
 
 </body>
