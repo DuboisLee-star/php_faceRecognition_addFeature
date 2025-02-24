@@ -80,7 +80,7 @@
             </a>
             <ul class="sub">
               <li><a class="" href="update_photo.php" target="_self">Capturar</a></li>
-              <li><a class="" href="" target="_self">Presença</a></li>
+              <li><a class="" href="" target="presenca.php">Presença</a></li>
               <li><a class="" href="" target="_self">Habitualidade</a></li> 
             </ul>
             </li>

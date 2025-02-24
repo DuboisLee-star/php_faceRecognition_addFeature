@@ -297,15 +297,6 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             .catch(error => console.error("❌ Error:", error));
         });
 
-        /* document.getElementById("form-photo").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent actual submission for testing
-    
-            const formData = new FormData(this);
-            console.log("🚀 Submitting Form Data:");
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ": " + pair[1]); // Log each form field
-            } 
-        }); */
     </script>
 
 </body>
