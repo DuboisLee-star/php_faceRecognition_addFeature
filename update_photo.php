@@ -158,20 +158,20 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                                 (Matrícula: <?php echo htmlspecialchars($membro->matricula); ?>)
                             </header>
                             <div class="panel-body">
-                                <form action="action_update_photo.php" method="post" id="form-photo" enctype="multipart/form-data">
+                                <form action="action_update_photo.php" method="post" id="form-photo">
                                     <div class="row">
                                         <div class="col-md-2">
                                             <a href="#" class="thumbnail">
                                                 <img src="<?php echo $membro->foto ? 'fotos/'.$membro->foto : 'img/padrao.png'; ?>" 
-                                                     height="190" width="150" id="foto-membro">
+                                                    height="190" width="150" id="foto-membro">
                                             </a>
-                                            <div id="screenshots"></div>
                                             <canvas class="is-hidden" id="canvas"></canvas>
                                             <video autoplay id="video" style="display:none;"></video>
                                         </div>
-                                        <div class="col-md-12">
-                                            <input type="file" name="foto" id="foto" value="foto">
-                                        </div>
+
+                                        <!-- Hidden input for captured webcam image -->
+                                        <input type="hidden" name="image_webcam" id="image_webcam">
+
                                         <div class="col-md-12" style="margin-top: 10px;">
                                             <button onclick="return habilitaWebcam()" class="btn btn-primary" type="button" id="btnwebcam">
                                                 <i class="fa fa-camera"></i> Habilitar Webcam
@@ -181,10 +181,15 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                                                 <i class="fa fa-photo"></i> Capturar
                                             </button>
                                         </div>
+
                                         <div class="col-md-12" style="margin-top: 20px;">
+                                            <?php
+                                                $nome_parts = explode(' ', trim($membro->nome)); // Split name by spaces
+                                                $first_name = $nome_parts[0]; // Get only the first name
+                                                $filename = $first_name . '_' . $membro->id . '_' . time();
+                                            ?>
                                             <input type="hidden" name="id" value="<?php echo $membro->id; ?>">
-                                            <input type="hidden" name="foto_atual" value="<?php echo $membro->foto; ?>">
-                                            <input type="hidden" name="image_webcam" id="image_webcam">
+                                            <input type="hidden" name="filename" value="<?php echo $filename; ?>">
                                             <button type="submit" class="btn btn-info">Salvar Foto</button>
                                         </div>
                                     </div>
@@ -208,19 +213,15 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
     
     <script>
         let cameraOn = false;
-        let webCamRequired = false;
         let videoStream;
 
         const habilitaWebcam = () => {
             if (!cameraOn) {
-                $("#screenshots").html('');
                 $("#image_webcam").val('');
-                webCamRequired = true;
                 playVideoStream();
                 $("#btnwebcam").addClass('btn-danger').html('<i class="fa fa-camera"></i> Desabilitar Webcam');
                 $("#btncaptura").fadeIn(100);
             } else {
-                webCamRequired = false;
                 stopVideoStream();
                 $("#btnwebcam").removeClass('btn-danger').html('<i class="fa fa-camera"></i> Habilitar Webcam');
                 $("#btncaptura").fadeOut(100);
@@ -234,85 +235,63 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                 const video = document.querySelector("#video");
                 const ctx = canvas.getContext("2d");
 
-                // Set the canvas size to match the displayed video size
+                // Adjust canvas size to video dimensions
                 canvas.width = 150;
-                canvas.height = 150 * video.videoHeight / video.videoWidth; 
-
-                // Draw the captured frame from the video
+                canvas.height = 150 * video.videoHeight / video.videoWidth;
                 ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, canvas.width, canvas.height);
 
-                // Convert the canvas image to a Data URL
+                // Convert to Base64 and store in hidden input
                 let image = canvas.toDataURL("image/png");
+                $("#foto-membro").attr("src", image);
+                $("#image_webcam").val(image);
 
-                // Update the profile image with the captured photo
-                $("#foto-membro").attr("src", image).fadeIn(100).css("visibility", "visible");
-
-                // Hide the video preview and show the captured image
-                habilitaWebcam();
-                $(".thumbnail").fadeOut(100);
+                habilitaWebcam(); // Turn off the webcam after capturing
             } else {
                 alert('Webcam não habilitada.');
             }
             return false;
         };
 
-
-
         function stopVideoStream() {
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
                 cameraOn = false;
-                $(".thumbnail").fadeIn(100);
                 $("video").fadeOut(100);
             }
         }
 
         async function playVideoStream() {
             try {
-                const constraints = {
-                    video: {
-                        width: { min: 300, ideal: 300, max: 300 },
-                        height: { min: 336, ideal: 336, max: 336 }
-                    }
-                };
-
                 const video = document.querySelector("#video");
-                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = videoStream;
                 cameraOn = true;
                 $("video").fadeIn(100);
-                $(".thumbnail").fadeOut(100);
             } catch (err) {
                 alert("Não foi possível acessar webcam: " + err);
             }
         }
 
-        // Check if webcam API is available
-        if (!("mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices)) {
-            alert("A API da câmera não está disponível no seu navegador");
+        document.getElementById("form-photo").addEventListener("submit", function (event) {
+            const imageWebcam = document.getElementById("image_webcam").value;
+
+            if (!imageWebcam) {
+                event.preventDefault(); // Stop submission if no image captured
+                alert("Por favor, capture uma foto antes de enviar.");
+            }
+        });
+        document.getElementById("form-photo").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent actual submission for testing
+
+        const formData = new FormData(this);
+        console.log("🚀 Submitting Form Data:");
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ": " + pair[1]); // Log each form field
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const fotoInput = document.getElementById("foto");
-            if (fotoInput) {
-                fotoInput.addEventListener("change", function (event) {
-                    const file = event.target.files[0]; // Get the selected file
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            document.getElementById("foto-membro").src = e.target.result; // Update the image preview
-                        };
-                        reader.readAsDataURL(file); // Read the image file as a Data URL
-                    }
-                });
-            }
-
-            $(window).on("load", function () {
-                if ($("html").getNiceScroll) {
-                    $("html").getNiceScroll().remove();
-                }
-            });
-        });
+        // To actually submit, uncomment this:
+        // this.submit();
+    });
     </script>
 
 </body>
