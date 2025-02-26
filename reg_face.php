@@ -181,7 +181,7 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                                 (Matrícula: <?php echo htmlspecialchars($membro->matricula); ?>)
                             </header>
                             <div class="panel-body">
-                                <form action="action_update_photo.php" method="post" id="form-photo">
+                                <form action="action_regFace.php" method="post" id="form-photo">
                                     <div class="row justify-content-center">
                                         <!-- Thumbnails Frame -->
                                         <div class="col-md-8 text-center">
@@ -355,9 +355,9 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             for (let pair of formData.entries()) {
                 console.log(`${pair[0]}: ${pair[1].substring(0, 100)}`); // Limit long Base64 strings
             }
-            // console.log(formData);
+            console.log(formData);
         
-            fetch("action_update_photo.php", {
+            fetch("action_regFace.php", {
                 method: "POST",
                 body: formData
             })
