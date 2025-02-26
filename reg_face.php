@@ -331,17 +331,32 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             }
         }
     
-        document.getElementById("form-photo").addEventListener("submit", function (event) {
+       document.getElementById("form-photo").addEventListener("submit", function (event) {
             event.preventDefault(); // Prevent normal form submission
-    
-            // Ensure at least one image is captured before submitting
-            if (!$("#image_webcam_0").val() && !$("#image_webcam_1").val() && !$("#image_webcam_2").val()) {
-                alert("Por favor, capture pelo menos uma foto antes de enviar.");
+        
+            // Get values of the three image fields
+            let capturedImages = [
+                $("#image_webcam_0").val(),
+                $("#image_webcam_1").val(),
+                $("#image_webcam_2").val()
+            ];
+        
+            // Ensure all three images are captured and valid
+            let allImagesFilled = capturedImages.every(img => img && img.startsWith("data:image/"));
+        
+            if (!allImagesFilled) {
+                alert("Por favor, capture todas as 3 fotos antes de enviar.");
                 return;
             }
-    
+        
             const formData = new FormData(this);
-    
+            // 🔍 Debugging: Log all FormData values before submission
+            console.log("📤 Form Data Being Sent:");
+            for (let pair of formData.entries()) {
+                console.log(`${pair[0]}: ${pair[1].substring(0, 100)}`); // Limit long Base64 strings
+            }
+            // console.log(formData);
+        
             fetch("action_update_photo.php", {
                 method: "POST",
                 body: formData
@@ -350,13 +365,14 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             .then(data => {
                 console.log("🔍 Server Response:", data);
                 alert(JSON.stringify(data, null, 2));
-    
+        
                 if (data.success) {
                     window.location.href = "painel.php"; // Redirect on success
                 }
             })
             .catch(error => console.error("❌ Error:", error));
         });
+
     
     </script>
 
