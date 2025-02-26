@@ -313,10 +313,18 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             const video = document.querySelector("#video");
             const ctx = canvas.getContext("2d");
         
-            // Set canvas size to 150x150 for consistency
-            canvas.width = 150;
-            canvas.height = 150;
-            ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, 150, 150);
+            // Capture original video dimensions
+            let videoWidth = video.videoWidth;
+            let videoHeight = video.videoHeight;
+        
+            // Scale to maintain aspect ratio with width 300px
+            let scaledHeight = (300 / videoWidth) * videoHeight;
+            
+            // Set new canvas size (higher resolution)
+            canvas.width = 300;
+            canvas.height = scaledHeight;
+            
+            ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, 300, scaledHeight);
         
             // Convert to Base64 and store in the first available slot
             let imgData = canvas.toDataURL("image/png");
@@ -337,7 +345,7 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             }
         
             sampleDescriptors[availableSlot] = detection.descriptor;
-            console.log('descrition',availableSlot, detection.descriptor);
+            console.log('descrition', availableSlot, detection.descriptor);
         
             return false;
         }
