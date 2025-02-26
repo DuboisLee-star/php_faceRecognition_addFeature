@@ -267,9 +267,9 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
         
         async function loadModels() {
             try {
-                await faceapi.nets.ssdMobilenetv1.loadFromUri('./models/ssd_mobilenetv1'); 
-                await faceapi.nets.faceLandmark68Net.loadFromUri('./models/face_landmark_68'); 
-                await faceapi.nets.faceRecognitionNet.loadFromUri('./models/face_recognition'); 
+                await faceapi.nets.ssdMobilenetv1.loadFromUri('./face_models/ssd_mobilenetv1'); 
+                await faceapi.nets.faceLandmark68Net.loadFromUri('./face_models/face_landmark_68'); 
+                await faceapi.nets.faceRecognitionNet.loadFromUri('./face_models/face_recognition'); 
                 console.log("✅ Face models loaded!");
             } catch (error) {
                 console.error("❌ Model loading error:", error);
@@ -337,6 +337,7 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             }
         
             sampleDescriptors[availableSlot] = detection.descriptor;
+            console.log('descrition',availableSlot, detection.descriptor);
         
             return false;
         }
@@ -403,7 +404,8 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             })
             .catch(error => console.error("❌ Error:", error));
         });
-    
+        
+        document.addEventListener("DOMContentLoaded", loadModels);
     </script>
 
 </body>
