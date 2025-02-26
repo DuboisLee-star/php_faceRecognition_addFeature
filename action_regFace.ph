@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (file_put_contents($filePath, $imageData)) {
                 $filePaths[] = $filePath;
             } else {
-                echo json_encode(["error" => "❌ Failed to save image {$index}."],  "path":>filePath);
+                echo json_encode(["error" => "❌ Failed to save image {$index}.",  "path"=>filePath ]);
                 exit;
             }
         }

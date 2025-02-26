@@ -227,6 +227,9 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                                     <input type="hidden" name="image_webcam_0" id="image_webcam_0">
                                     <input type="hidden" name="image_webcam_1" id="image_webcam_1">
                                     <input type="hidden" name="image_webcam_2" id="image_webcam_2">
+                                    <!--<input type="hidden" name="image_descriptor_0" id="image_descriptor_0">-->
+                                    <!--<input type="hidden" name="image_descriptor_1" id="image_descriptor_1">-->
+                                    <!--<input type="hidden" name="image_descriptor_2" id="image_descriptor_2">-->
                                     <input type="hidden" name="id" value="<?php echo $membro->id; ?>">
                                 
                                     <!-- Submit Button -->
@@ -254,53 +257,90 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
     <script src="js/jquery.nicescroll.js" type="text/javascript"></script>
     <script src="js/scripts.js"></script>
     
+    <script defer src="./face_models/face-api.min.js"></script>
     <script>
         let cameraOn = false;
         let videoStream;
         let capturedImages = 0; // Track the next available slot for a new image
         const defaultImage = "img/padrao.png"; // Default image
-    
-        const habilitaWebcam = () => {
+        let sampleDescriptors = []; // Store face descriptors
+        
+        async function loadModels() {
+            try {
+                await faceapi.nets.ssdMobilenetv1.loadFromUri('./models/ssd_mobilenetv1'); 
+                await faceapi.nets.faceLandmark68Net.loadFromUri('./models/face_landmark_68'); 
+                await faceapi.nets.faceRecognitionNet.loadFromUri('./models/face_recognition'); 
+                console.log("✅ Face models loaded!");
+            } catch (error) {
+                console.error("❌ Model loading error:", error);
+            }
+        }
+        
+        async function habilitaWebcam() {
             if (!cameraOn) {
                 $("#btnwebcam").addClass('btn-danger').html('<i class="fa fa-camera"></i> Desabilitar Webcam');
                 $("#btncaptura").fadeIn(100);
-                playVideoStream();
+                await playVideoStream();
             } else {
                 stopVideoStream();
                 $("#btnwebcam").removeClass('btn-danger').html('<i class="fa fa-camera"></i> Habilitar Webcam');
                 $("#btncaptura").fadeOut(100);
             }
             return false;
-        };
+        }
     
-        const capturaWebcam = () => {
-            if (cameraOn) {
-                if (capturedImages >= 3) {
-                    alert("Você já capturou 3 imagens!");
-                    return false;
-                }
-    
-                const canvas = document.querySelector("#canvas");
-                const video = document.querySelector("#video");
-                const ctx = canvas.getContext("2d");
-    
-                // Set canvas size to 150x150 for consistency
-                canvas.width = 150;
-                canvas.height = 150;
-                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, 150, 150);
-    
-                // Convert to Base64 and store in the next available slot
-                let image = canvas.toDataURL("image/png");
-                $(`#face_${capturedImages}`).attr("src", image);
-                $(`#image_webcam_${capturedImages}`).val(image);
-    
-                capturedImages++; // Move to the next slot
-    
-            } else {
+        async function capturaWebcam() {
+            if (!cameraOn) {
                 alert('Webcam não habilitada.');
+                return false;
             }
+        
+            // Find the first empty slot
+            let availableSlot = -1;
+            for (let i = 0; i < 3; i++) {
+                if (!$(`#image_webcam_${i}`).val()) {
+                    availableSlot = i;
+                    break;
+                }
+            }
+        
+            if (availableSlot === -1) {
+                alert("Você já capturou 3 imagens!");
+                return false;
+            }
+        
+            const canvas = document.querySelector("#canvas");
+            const video = document.querySelector("#video");
+            const ctx = canvas.getContext("2d");
+        
+            // Set canvas size to 150x150 for consistency
+            canvas.width = 150;
+            canvas.height = 150;
+            ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, 150, 150);
+        
+            // Convert to Base64 and store in the first available slot
+            let imgData = canvas.toDataURL("image/png");
+            $(`#face_${availableSlot}`).attr("src", imgData);
+            $(`#image_webcam_${availableSlot}`).val(imgData);
+            
+            capturedImages = availableSlot + 1;
+            
+            // Generate face descriptor
+            let image = await faceapi.fetchImage(imgData);
+            let detection = await faceapi.detectSingleFace(image, new faceapi.SsdMobilenetv1Options())
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+        
+            if (!detection) {
+                alert("No face detected! Try again.");
+                return;
+            }
+        
+            sampleDescriptors[availableSlot] = detection.descriptor;
+        
             return false;
-        };
+        }
+
     
         function stopVideoStream() {
             if (videoStream) {
@@ -331,48 +371,38 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             }
         }
     
-       document.getElementById("form-photo").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent normal form submission
-        
-            // Get values of the three image fields
-            let capturedImages = [
-                $("#image_webcam_0").val(),
-                $("#image_webcam_1").val(),
-                $("#image_webcam_2").val()
-            ];
-        
-            // Ensure all three images are captured and valid
-            let allImagesFilled = capturedImages.every(img => img && img.startsWith("data:image/"));
-        
-            if (!allImagesFilled) {
+       document.getElementById("form-photo").addEventListener("submit", async function (event) {
+            event.preventDefault();
+    
+            if (capturedImages < 3) {
                 alert("Por favor, capture todas as 3 fotos antes de enviar.");
                 return;
             }
-        
+    
             const formData = new FormData(this);
-            // 🔍 Debugging: Log all FormData values before submission
-            console.log("📤 Form Data Being Sent:");
+    
+            // Convert descriptors array to JSON string and append it to form data
+            formData.append("descriptors", JSON.stringify(sampleDescriptors));
+            console.log("📤 Sending Test FormData...");
             for (let pair of formData.entries()) {
-                console.log(`${pair[0]}: ${pair[1].substring(0, 100)}`); // Limit long Base64 strings
+                console.log(`${pair[0]}: ${pair[1].substring(0, 100)}`);
             }
-            console.log(formData);
-        
+            
             fetch("action_regFace.php", {
                 method: "POST",
                 body: formData
             })
-            .then(response => response.json()) // Convert response to JSON
+            .then(response => response.json())
             .then(data => {
                 console.log("🔍 Server Response:", data);
                 alert(JSON.stringify(data, null, 2));
-        
+    
                 if (data.success) {
-                    window.location.href = "painel.php"; // Redirect on success
+                    window.location.href = "painel.php";
                 }
             })
             .catch(error => console.error("❌ Error:", error));
         });
-
     
     </script>
 
