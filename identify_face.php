@@ -39,11 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
         $inputDescriptor = $image_descriptor;
         $bestMatch = null;
+        $match_matricula = null;
         $lowestDistance = INF;
     
         foreach ($faces as $face) {
             $storedDescriptors = json_decode($face['descriptors'], true); // Now an array of multiple descriptors
-            
+            $cur_matricula = $face['matricula'];
             
             if (!is_array($storedDescriptors)) {
                 error_log("Invalid descriptor format for Matricula {$face['matricula']}");
@@ -73,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($minDistance < 0.45 && $minDistance < $lowestDistance) {
                 $bestMatch = $face;
                 $lowestDistance = $minDistance;
+                $match_matricula = $cur_matricula;
             }
         }
     
@@ -80,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode([
                 "success" => true,
                 "distance" => $lowestDistance,
-                "matricula" => $matricula,
+                "matricula" => $match_matricula,
                 // "nome" => $bestMatch['nome']
             ]);
         } else {
