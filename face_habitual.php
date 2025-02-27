@@ -65,8 +65,42 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
         max-width: 300px;
         border-radius: 5px;
     }
-    .search-box {
-        margin-bottom: 20px;
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal-box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-box button {
+        margin: 10px;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    #confirmBtn {
+        background: green;
+        color: white;
+    }
+    
+    #cancelBtn {
+        background: red;
+        color: white;
     }
     </style>
 </head>
@@ -216,30 +250,25 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
             const video = document.getElementById("video");
             const ctx = canvas.getContext("2d");
         
-            // Calculate height while maintaining aspect ratio
             const aspectRatio = video.videoHeight / video.videoWidth;
             canvas.width = 300;
             canvas.height = 300 * aspectRatio;
         
-            // Draw the image
             ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, canvas.width, canvas.height);
             
             const imgData = canvas.toDataURL("image/png");
             document.getElementById("image_webcam").value = imgData;
         
-            // Stop webcam & show captured image
             stopVideoStream();
             video.style.display = "none";
             canvas.style.display = "block"; 
         
-            // Reset webcam button
             const btnWebcam = document.getElementById("btnwebcam");
             btnWebcam.classList.remove("btn-danger");
             btnWebcam.classList.add("btn-primary");
             btnWebcam.innerHTML = '<i class="fa fa-camera"></i> Habilitar Webcam';
             cameraOn = false;
         
-            // Generate face descriptor
             let image = await faceapi.fetchImage(imgData);
             let detection = await faceapi.detectSingleFace(image, new faceapi.SsdMobilenetv1Options())
                 .withFaceLandmarks()
@@ -250,35 +279,55 @@ if (!empty($id_membro) && is_numeric($id_membro)) {
                 return;
             }
         
-            // const descriptor = Array.from(detection.descriptor); // Convert to array
-            const descriptor = detection.descriptor; // Convert to array
-
-            // Send descriptor to the server for identification
+            const descriptor = detection.descriptor;
+        
             console.log("Sending Descriptor:", descriptor);
             fetch("identify_face.php", {
                 method: "POST",
-                body: JSON.stringify({descriptors: descriptor  }),
+                body: JSON.stringify({descriptor: descriptor}),
                 headers: { "Content-Type": "application/json" }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Identificado: ${data.nome} (Matrícula: ${data.matricula})`);
+                    showModal(data.id, data.nome, data.matricula, () => {
+                        window.location.href = `habitualidade.php?id=${data.id}`;
+                    });
                 } else {
-                    alert("Nenhuma correspondência encontrada.");
+                    showModal(null, "Nenhuma correspondência encontrada.", null, null);
                 }
             })
             .catch(error => console.error("Erro ao identificar:", error));
         
             return false;
+        }
+        function showModal(id, nome, matricula, onConfirm) {
+            const modal = document.createElement("div");
+            modal.innerHTML = `
+                <div class='modal-overlay'>
+                    <div class='modal-box'>
+                        <p><strong>ID:</strong> ${id || "N/A"}</p>
+                        <p><strong>Nome:</strong> ${nome}</p>
+                        <p><strong>Matrícula:</strong> ${matricula || "N/A"}</p>
+                        <button id='confirmBtn'>Confirmar</button>
+                        <button id='cancelBtn'>Cancelar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
             
-            console.log("Descriptor:", detection.descriptor);
-        
-            // alert("Imagem capturada com sucesso!");
-            return false;
+            document.getElementById("confirmBtn").addEventListener("click", () => {
+                document.body.removeChild(modal);
+                if (onConfirm) onConfirm();
+            });
+            
+            document.getElementById("cancelBtn").addEventListener("click", () => {
+                document.body.removeChild(modal);
+            });
         }
         document.addEventListener("DOMContentLoaded", loadModels);
     </script>
+    
 
 </body>
 </html>
