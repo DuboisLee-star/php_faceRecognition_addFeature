@@ -79,12 +79,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     
         if ($bestMatch) {
-            echo json_encode([
-                "success" => true,
-                "distance" => $lowestDistance,
-                "matricula" => $match_matricula,
-                // "nome" => $bestMatch['nome']
-            ]);
+            $sql = "SELECT id, nome FROM tab_membros WHERE matricula = :matricula";
+            $stm = $conexao->prepare($sql);
+            $stm->bindParam(":matricula", $match_matricula);
+            $stm->execute();
+            $membro = $stm->fetch(PDO::FETCH_ASSOC);
+            
+            if ($membro) {
+                echo json_encode([
+                    "success" => true,
+                    "id" => $membro['id'],
+                    "nome" => $membro['nome'],
+                    "matricula" => $match_matricula,
+                    "distance" => $lowestDistance
+                ]);
+            } else {
+                echo json_encode(["success" => false, "error" => "Member not found"]);
+            }
         } else {
             echo json_encode(["success" => false]);
         }
